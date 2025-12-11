@@ -1,5 +1,8 @@
 name: Data Preprocessing Pipeline
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
@@ -64,5 +67,3 @@ jobs:
         git add heart_preprocessing/*.csv
         git commit -m "Update preprocessing outputs (run ${{ github.run_number }})" || echo "No changes to commit"
         git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
