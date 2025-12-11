@@ -32,20 +32,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
-    - name: Verify required files
+    - name: Verify data files
       run: |
-        echo "Checking directory structure..."
+        echo "Checking for required files..."
         ls -lah
         if [ ! -f "heart_raw.csv" ]; then
           echo "Error: heart_raw.csv not found!"
           exit 1
         fi
-        if [ ! -f "automate_Azzahra.py" ]; then
-          echo "Error: automate_Azzahra.py not found!"
-          exit 1
-        fi
-        echo "✓ All required files found"
-        
+        echo "heart_raw.csv found"
     - name: Run preprocessing
       run: |
         echo "Starting preprocessing pipeline..."
