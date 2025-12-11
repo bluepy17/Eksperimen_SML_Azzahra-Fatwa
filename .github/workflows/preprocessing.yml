@@ -5,14 +5,16 @@ on:
     branches:
       - main
     paths:
-      - 'preprocessing/**'
       - 'automate_Azzahra.py'
+      - 'heart_raw.csv'
+      - 'requirements.txt'
   pull_request:
     branches:
       - main
     paths:
-      - 'preprocessing/**'
       - 'automate_Azzahra.py'
+      - 'heart_raw.csv'
+      - 'requirements.txt'
   workflow_dispatch:
 
 jobs:
@@ -21,44 +23,61 @@ jobs:
     
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
+        cache: 'pip'
         
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
+    - name: Verify data files
+      run: |
+        echo "Checking for required files..."
+        ls -lah
+        if [ ! -f "heart_raw.csv" ]; then
+          echo "Error: heart_raw.csv not found!"
+          exit 1
+        fi
+        echo "heart_raw.csv found"
+        
     - name: Run preprocessing
       run: |
+        echo "Starting preprocessing pipeline..."
         python automate_Azzahra.py
+        echo "Preprocessing completed"
         
-    - name: Check processed data
+    - name: Verify processed data
       run: |
         echo "Checking for processed data files..."
-        ls -lah preprocessing/heart_preprocessing/
+        ls -lah heart_preprocessing/
         
-    - name: Upload processed data
-      uses: actions/upload-artifact@v3
+    - name: Upload processed data as artifacts
+      uses: actions/upload-artifact@v4
       with:
         name: processed-data
         path: |
-          preprocessing/heart_preprocessing/X_train_preprocessing.csv
-          preprocessing/heart_preprocessing/X_test_preprocessing.csv
-          preprocessing/heart_preprocessing/y_train_preprocessing.csv
-          preprocessing/heart_preprocessing/y_test_preprocessing.csv
+          heart_preprocessing/X_train_preprocessing.csv
+          heart_preprocessing/X_test_preprocessing.csv
+          heart_preprocessing/y_train_preprocessing.csv
+          heart_preprocessing/y_test.csv
         retention-days: 30
         
     - name: Commit and push processed data
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git add preprocessing/heart_preprocessing/*.csv
-        git diff --staged --quiet || git commit -m "Update processed data [automated]"
-        git push
+        git add heart_preprocessing/*.csv
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update processed data [automated]"
+          git push
+        fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
