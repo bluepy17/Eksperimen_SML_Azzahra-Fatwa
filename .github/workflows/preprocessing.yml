@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'automate_Azzahra.py'
+      - 'preprocessing/automate_Azzahra.py'
       - 'heart_raw.csv'
       - 'requirements.txt'
   pull_request:
@@ -21,7 +21,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0   # penting agar bisa pull + rebase
+        fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -48,23 +48,21 @@ jobs:
       run: |
         echo "Starting preprocessing pipeline..."
         python preprocessing/automate_Azzahra.py
-        
+
     - name: Upload preprocessed CSV as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: preprocessed-data-${{ github.run_number }}
-          path: |
-            heart_preprocessing/*.csv
-          retention-days: 30
+      uses: actions/upload-artifact@v4
+      with:
+        name: preprocessed-data-${{ github.run_number }}
+        path: heart_preprocessing/*.csv
+        retention-days: 30
 
     - name: Commit and push updated preprocessed data
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
 
-          git add heart_preprocessing/*.csv
-          git commit -m "Update preprocessing outputs (run ${{ github.run_number }})" || echo "No changes to commit"
-          git push
-
+        git add heart_preprocessing/*.csv
+        git commit -m "Update preprocessing outputs (run ${{ github.run_number }})" || echo "No changes to commit"
+        git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
