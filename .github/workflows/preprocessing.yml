@@ -1,0 +1,64 @@
+name: Data Preprocessing Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'preprocessing/**'
+      - 'automate_Azzahra.py'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'preprocessing/**'
+      - 'automate_Azzahra.py'
+  workflow_dispatch:
+
+jobs:
+  preprocess:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run preprocessing
+      run: |
+        python automate_Azzahra.py
+        
+    - name: Check processed data
+      run: |
+        echo "Checking for processed data files..."
+        ls -lah preprocessing/heart_preprocessing/
+        
+    - name: Upload processed data
+      uses: actions/upload-artifact@v3
+      with:
+        name: processed-data
+        path: |
+          preprocessing/heart_preprocessing/X_train_preprocessing.csv
+          preprocessing/heart_preprocessing/X_test_preprocessing.csv
+          preprocessing/heart_preprocessing/y_train_preprocessing.csv
+          preprocessing/heart_preprocessing/y_test_preprocessing.csv
+        retention-days: 30
+        
+    - name: Commit and push processed data
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add preprocessing/heart_preprocessing/*.csv
+        git diff --staged --quiet || git commit -m "Update processed data [automated]"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
