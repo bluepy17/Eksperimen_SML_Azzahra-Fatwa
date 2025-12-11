@@ -46,11 +46,6 @@ jobs:
         echo "Starting preprocessing pipeline..."
         python preprocessing/automate_Azzahra.py
         
-    - name: Verify processed data
-      run: |
-        echo "Checking output files..."
-        ls -lah preprocessing/heart_preprocessing/
-        
     - name: Upload processed data as artifacts
       uses: actions/upload-artifact@v4
       with:
