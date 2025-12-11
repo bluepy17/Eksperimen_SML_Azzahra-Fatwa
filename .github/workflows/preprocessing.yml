@@ -68,8 +68,12 @@ jobs:
         # Hindari error "fetch first"
         git pull --rebase origin ${{ github.ref_name }} || true
 
-        git add preprocessing/heart_preprocessing/*.csv
-        
+        # Pastikan folder output ada (jika tidak ada, buat)
+        mkdir -p preprocessing/heart_preprocessing
+
+        # Add file jika ada, tapi jika belum ada tidak error
+        git add preprocessing/heart_preprocessing/*.csv 2>/dev/null || true
+
         if git diff --staged --quiet; then
           echo "No changes to commit"
         else
@@ -78,3 +82,4 @@ jobs:
         fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
