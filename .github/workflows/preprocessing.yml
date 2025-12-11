@@ -11,10 +11,6 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - 'automate_Azzahra.py'
-      - 'heart_raw.csv'
-      - 'requirements.txt'
   workflow_dispatch:
 
 jobs:
@@ -36,47 +32,50 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
-    - name: Verify data files
+    - name: Verify required files
       run: |
-        echo "Checking for required files..."
+        echo "Checking directory structure..."
         ls -lah
         if [ ! -f "heart_raw.csv" ]; then
           echo "Error: heart_raw.csv not found!"
           exit 1
         fi
-        echo "heart_raw.csv found"
+        if [ ! -f "automate_Azzahra.py" ]; then
+          echo "Error: automate_Azzahra.py not found!"
+          exit 1
+        fi
+        echo "✓ All required files found"
         
     - name: Run preprocessing
       run: |
         echo "Starting preprocessing pipeline..."
-        python automate_Azzahra.py
-        echo "Preprocessing completed"
+        python preprocessing/automate_Azzahra.py
         
     - name: Verify processed data
       run: |
-        echo "Checking for processed data files..."
-        ls -lah heart_preprocessing/
+        echo "Checking output files..."
+        ls -lah preprocessing/heart_preprocessing/
         
     - name: Upload processed data as artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: processed-data
+        name: processed-data-${{ github.run_number }}
         path: |
-          heart_preprocessing/X_train_preprocessing.csv
-          heart_preprocessing/X_test_preprocessing.csv
-          heart_preprocessing/y_train_preprocessing.csv
-          heart_preprocessing/y_test.csv
+          preprocessing/heart_preprocessing/X_train_preprocessing.csv
+          preprocessing/heart_preprocessing/X_test_preprocessing.csv
+          preprocessing/heart_preprocessing/y_train_preprocessing.csv
+          preprocessing/heart_preprocessing/y_test.csv
         retention-days: 30
         
     - name: Commit and push processed data
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git add heart_preprocessing/*.csv
+        git add preprocessing/heart_preprocessing/*.csv
         if git diff --staged --quiet; then
           echo "No changes to commit"
         else
-          git commit -m "Update processed data [automated]"
+          git commit -m "Update processed data [automated] - Run #${{ github.run_number }}"
           git push
         fi
       env:
