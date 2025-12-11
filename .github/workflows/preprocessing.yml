@@ -46,17 +46,8 @@ jobs:
 
     - name: Run preprocessing
       run: |
-        echo "Current directory:"
-        pwd
-        echo "Files in root:"
-        ls -lah
-        echo "Files in preprocessing:"
-        ls -lah preprocessing/
-        cd preprocessing
-        python automate_Azzahra.py
-        cd ..
-        echo "Files after preprocessing:"
-        ls -lah preprocessing/heart_preprocessing/ || echo "Folder belum dibuat"
+        echo "Starting preprocessing pipeline..."
+        python preprocessing/automate_Azzahra.py
         
     - name: Upload processed data as artifacts
       uses: actions/upload-artifact@v4
