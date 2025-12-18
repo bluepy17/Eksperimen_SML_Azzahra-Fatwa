@@ -5,8 +5,11 @@ on:
     branches: [ main ]
     paths:
       - heart_disease.csv
-      - preprocessing/automate_Azzahra.py
+      - preprocessing/automate_*.py
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   preprocess:
