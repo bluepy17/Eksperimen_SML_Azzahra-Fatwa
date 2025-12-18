@@ -1,0 +1,52 @@
+name: Preprocess Data
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - heart_disease.csv
+      - preprocessing/automate_Azzahra.py
+  workflow_dispatch:
+
+jobs:
+  preprocess:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas==2.2.3 numpy==1.26.4 scikit-learn==1.5.2 imbalanced-learn==0.12.4
+
+      - name: Run preprocessing
+        run: |
+          cd preprocessing
+          python automate_Azzahra.py
+
+      - name: Upload preprocessed data
+        uses: actions/upload-artifact@v4
+        with:
+          name: preprocessed-data
+          path: preprocessing/heart_disease_preprocessing.csv
+          retention-days: 30
+
+      - name: Commit preprocessed data
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add preprocessing/heart_disease_preprocessing.csv
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update preprocessed data"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
