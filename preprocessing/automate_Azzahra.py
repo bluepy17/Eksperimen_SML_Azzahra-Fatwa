@@ -125,7 +125,7 @@ def scale_features(df, target_column=None):
     print("SCALING FEATURES")
 
     if target_column is None:
-        target_column = df.columns[-1]
+        target_column = "Heart Disease Status"
 
     df_scaled = df.copy()
     features = [c for c in df_scaled.columns if c != target_column]
