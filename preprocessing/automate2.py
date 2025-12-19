@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class HeartDiseasePreprocessor:
-    def __init__(self, raw_data_path='heart_disease.csv', output_path='heart_preprocessing'):
+    def __init__(self, raw_data_path='heart_disease.csv', output_path='preprocessing/heart_preprocessing'):
         self.raw_data_path = raw_data_path
         self.output_path = output_path
         self.scaler = StandardScaler()
@@ -243,6 +243,43 @@ class HeartDiseasePreprocessor:
             logger.info("Gender column not found")
 
         return self
+        
+    def encode_target(self):
+        logger.info("Encoding target variable (y)...")
+    
+        target_map = {"yes": 1, "no": 0}
+    
+        # Encode y_train
+        self.y_train = (
+            self.y_train
+            .astype(str)
+            .str.lower()
+            .str.strip()
+            .map(target_map)
+        )
+    
+        # Encode y_test
+        self.y_test = (
+            self.y_test
+            .astype(str)
+            .str.lower()
+            .str.strip()
+            .map(target_map)
+        )
+    
+        # Validasi NaN
+        nan_train = self.y_train.isna().sum()
+        nan_test = self.y_test.isna().sum()
+    
+        if nan_train > 0 or nan_test > 0:
+            logger.warning(
+                f"NaN detected after target encoding "
+                f"(train={nan_train}, test={nan_test})"
+            )
+    
+        logger.info("Target encoded (Yes=1, No=0)")
+        return self
+
 
     def encode_ordinal_columns(self):
         logger.info("Detecting and encoding ordinal columns...")
@@ -335,40 +372,41 @@ class HeartDiseasePreprocessor:
         self.X_test_final = self.X_test_scaled
         self.y_test_final = self.y_test
 
-        logger.info("✓ SMOTE applied successfully")
+        logger.info("SMOTE applied successfully")
 
         return self
 
     def save_preprocessed_data(self):
         logger.info(f"Saving preprocessed data to '{self.output_path}/'...")
-        
+    
         os.makedirs(self.output_path, exist_ok=True)
-        
-        # Save files
-        self.X_train_final.to_csv(
-            os.path.join(self.output_path, 'X_train_preprocessing.csv'),
-            index=False
-        )
-        self.y_train_final.to_csv(
-            os.path.join(self.output_path, 'y_train_preprocessing.csv'),
-            index=False
-        )
-        self.X_test_final.to_csv(
-            os.path.join(self.output_path, 'X_test_preprocessing.csv'),
-            index=False
-        )
-        self.y_test_final.to_csv(
-            os.path.join(self.output_path, 'y_test.csv'),
-            index=False
-        )
-
-        logger.info("All files saved successfully!")
+    
+        files = {
+            "X_train_preprocessing.csv": self.X_train_final,
+            "y_train_preprocessing.csv": self.y_train_final,
+            "X_test_preprocessing.csv": self.X_test_final,
+            "y_test.csv": self.y_test_final,
+        }
+    
+        for filename, data in files.items():
+            file_path = os.path.join(self.output_path, filename)
+    
+            if os.path.exists(file_path):
+                logger.info(f"Updating existing file: {filename}")
+            else:
+                logger.info(f"Creating new file: {filename}")
+    
+            data.to_csv(file_path, index=False)
+    
+        logger.info("All files saved/updated successfully!")
         logger.info(f"  - X_train_preprocessing.csv: {self.X_train_final.shape}")
         logger.info(f"  - y_train_preprocessing.csv: {self.y_train_final.shape}")
         logger.info(f"  - X_test_preprocessing.csv: {self.X_test_final.shape}")
         logger.info(f"  - y_test.csv: {self.y_test_final.shape}")
-
+    
         return self
+
+
 
     def run_pipeline(self):
         logger.info("STARTING AUTOMATED PREPROCESSING PIPELINE")
@@ -386,6 +424,7 @@ class HeartDiseasePreprocessor:
             self.encode_boolean_columns()
             self.encode_gender()
             self.encode_ordinal_columns()
+            self.encode_target()
             self.scale_features()
             self.apply_smote()
             self.save_preprocessed_data()
@@ -419,8 +458,7 @@ class HeartDiseasePreprocessor:
 def main():
     # Configuration
     RAW_DATA_PATH = 'heart_disease.csv'
-    OUTPUT_PATH = 'heart_preprocessing'
-
+    OUTPUT_PATH = "preprocessing/heart_preprocessing"
     # Initialize and run preprocessor
     preprocessor = HeartDiseasePreprocessor(RAW_DATA_PATH, OUTPUT_PATH)
     preprocessor.run_pipeline()
