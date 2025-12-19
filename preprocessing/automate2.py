@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class HeartDiseasePreprocessor:
-    def __init__(self, raw_data_path='heart_raw.csv', output_path='heart_preprocessing'):
+    def __init__(self, raw_data_path='heart_disease.csv', output_path='heart_preprocessing'):
         self.raw_data_path = raw_data_path
         self.output_path = output_path
         self.scaler = StandardScaler()
@@ -418,7 +418,7 @@ class HeartDiseasePreprocessor:
 
 def main():
     # Configuration
-    RAW_DATA_PATH = 'heart_raw.csv'
+    RAW_DATA_PATH = 'heart_disease.csv'
     OUTPUT_PATH = 'heart_preprocessing'
 
     # Initialize and run preprocessor
