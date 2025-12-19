@@ -22,12 +22,11 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0   # penting agar bisa pull + rebase
-
+    
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
-        cache: 'pip'
+          python-version: '3.12'
         
     - name: Install dependencies
       run: |
@@ -38,16 +37,16 @@ jobs:
       run: |
         echo "Checking for required files..."
         ls -lah
-        if [ ! -f "heart_raw.csv" ]; then
-          echo "Error: heart_raw.csv not found!"
+        if [ ! -f "heart_disease.csv" ]; then
+          echo "Error: heart_disease.csv not found!"
           exit 1
         fi
-        echo "heart_raw.csv found"
+        echo "heart_disease.csv found"
 
     - name: Run preprocessing
       run: |
         echo "Starting preprocessing pipeline..."
-        python preprocessing/automate_Azzahra.py
+        python preprocessing/automate2.py
         
     - name: Upload processed data as artifacts
       uses: actions/upload-artifact@v4
