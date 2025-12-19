@@ -1,0 +1,92 @@
+name: Data Preprocessing Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'automate_Azzahra.py'
+      - 'heart_raw.csv'
+      - 'requirements.txt'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  preprocess:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0   # penting agar bisa pull + rebase
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Verify data files
+      run: |
+        echo "Checking for required files..."
+        ls -lah
+        if [ ! -f "heart_raw.csv" ]; then
+          echo "Error: heart_raw.csv not found!"
+          exit 1
+        fi
+        echo "heart_raw.csv found"
+
+    - name: Run preprocessing
+      run: |
+        echo "Starting preprocessing pipeline..."
+        python preprocessing/automate_Azzahra.py
+        
+    - name: Upload processed data as artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: processed-data-${{ github.run_number }}
+        path: |
+          preprocessing/heart_preprocessing/*.csv
+        retention-days: 30
+        
+    - name: Commit and push processed data
+      run: |
+        echo "Configuring git..."
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        
+        echo "Pulling latest changes..."
+        git pull --rebase origin ${{ github.ref_name }} || true
+
+        # Pastikan folder output ada
+        mkdir -p preprocessing/heart_preprocessing
+          
+        # Add semua file CSV di folder output
+        if ls preprocessing/heart_preprocessing/*.csv 1> /dev/null 2>&1; then
+            echo "Adding CSV files..."
+            git add preprocessing/heart_preprocessing/*.csv
+            
+            # Cek apakah ada perubahan yang di-stage
+            if git diff --staged --quiet; then
+              echo "ℹ No changes to commit"
+            else
+              echo "Committing changes..."
+              git commit -m "Update processed data [automated] - Run #${{ github.run_number }}"
+              
+              echo "Pushing to repository..."
+              git push origin HEAD:${{ github.ref_name }}
+              echo "✓ Changes pushed successfully"
+            fi
+          else
+            echo "⚠ No CSV files found to commit"
+          fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
