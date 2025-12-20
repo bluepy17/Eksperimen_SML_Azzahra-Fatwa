@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'preprocessing/automate2.py'
+      - 'preprocessing/automate_Azzahra-Fatwa.py'
       - 'heart_disease.csv'
       - 'requirements.txt'
   pull_request:
@@ -45,7 +45,7 @@ jobs:
 
     - name: Run preprocessing
       run: |
-        python preprocessing/automate2.py
+        python preprocessing/automate_Azzahra-Fatwa.py
 
     - name: Upload processed data as artifacts
       uses: actions/upload-artifact@v4
